@@ -62,7 +62,7 @@ pub struct PresignedUploadUrlResponse {
 }
 
 #[derive(Deserialize)]
-pub struct MultipartUploadReponse {
+pub struct MultipartUploadResponse {
     pub id: String,
     pub parts: Vec<PresignedUploadUrlResponse>,
 }
@@ -70,7 +70,7 @@ pub struct MultipartUploadReponse {
 #[derive(Deserialize)]
 pub struct PresignedArtifactFileUploadUrlsResponse {
     pub rel_path: String,
-    pub urls: MultipartUploadReponse,
+    pub urls: MultipartUploadResponse,
 }
 
 #[derive(Deserialize)]
