@@ -1,7 +1,12 @@
-pub mod client;
-pub mod credentials;
-pub mod error;
-pub mod schemas;
+mod artifact;
+mod client;
+mod credentials;
+mod error;
+mod experiment;
+mod job;
+mod model;
+mod project;
+mod user;
 
 pub use client::Client;
 pub use credentials::BurnCentralCredentials;

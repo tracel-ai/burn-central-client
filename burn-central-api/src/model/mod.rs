@@ -1,0 +1,58 @@
+pub mod response;
+
+use crate::{
+    Client, ClientError,
+    model::response::{ModelResponse, ModelVersionResponse},
+};
+
+impl Client {
+    /// Get details about a specific model.
+    ///
+    /// The client must be logged in before calling this method.
+    pub fn get_model(
+        &self,
+        namespace: &str,
+        project_name: &str,
+        model_name: &str,
+    ) -> Result<ModelResponse, ClientError> {
+        let url = self.join(&format!(
+            "projects/{namespace}/{project_name}/models/{model_name}"
+        ));
+
+        self.get_json::<ModelResponse>(url)
+    }
+
+    /// Get details about a specific model version.
+    ///
+    /// The client must be logged in before calling this method.
+    pub fn get_model_version(
+        &self,
+        namespace: &str,
+        project_name: &str,
+        model_name: &str,
+        version: u32,
+    ) -> Result<ModelVersionResponse, ClientError> {
+        let url = self.join(&format!(
+            "projects/{namespace}/{project_name}/models/{model_name}/versions/{version}"
+        ));
+
+        self.get_json::<ModelVersionResponse>(url)
+    }
+
+    /// Generate presigned URLs for downloading model version files.
+    ///
+    /// The client must be logged in before calling this method.
+    pub fn presign_model_download(
+        &self,
+        namespace: &str,
+        project_name: &str,
+        model_name: &str,
+        version: u32,
+    ) -> Result<ModelDownloadResponse, ClientError> {
+        let url = self.join(&format!(
+            "projects/{namespace}/{project_name}/models/{model_name}/versions/{version}/download"
+        ));
+
+        self.get_json::<ModelDownloadResponse>(url)
+    }
+}
