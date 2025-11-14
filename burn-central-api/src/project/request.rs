@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone, Debug)]
 pub(crate) struct CreateProjectRequest {
     pub name: String,
     pub description: Option<String>,
@@ -20,15 +20,15 @@ pub struct BurnCentralCodeMetadataRequest {
     pub functions: Vec<RegisteredFunctionRequest>,
 }
 
-#[derive(Debug, Serialize)]
-pub struct CodeUploadRequest {
+#[derive(Debug, Serialize, Clone)]
+pub(crate) struct CodeUploadRequest {
     pub target_package_name: String,
     pub burn_central_metadata: BurnCentralCodeMetadataRequest,
     pub crates: Vec<CrateVersionMetadataRequest>,
     pub digest: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct CrateVersionMetadataRequest {
     pub checksum: String,
     pub metadata: serde_json::Value,

@@ -1,5 +1,6 @@
 pub mod request;
 pub mod response;
+pub mod websocket;
 
 use crate::{
     Client, ClientError,

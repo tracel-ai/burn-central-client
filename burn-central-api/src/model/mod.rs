@@ -2,7 +2,7 @@ pub mod response;
 
 use crate::{
     Client, ClientError,
-    model::response::{ModelResponse, ModelVersionResponse},
+    model::response::{ModelDownloadResponse, ModelResponse, ModelVersionResponse},
 };
 
 impl Client {

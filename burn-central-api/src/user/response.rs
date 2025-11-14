@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct UserResponseSchema {
     #[serde(rename = "id")]
     pub _id: i32,
@@ -9,12 +9,12 @@ pub struct UserResponseSchema {
     pub namespace: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct GetUserOrganizationsResponse {
     pub organizations: Vec<OrganizationResponse>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone, Debug)]
 pub struct OrganizationResponse {
     pub name: String,
     pub namespace: String,
