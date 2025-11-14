@@ -8,9 +8,11 @@ mod model;
 mod project;
 mod user;
 
+pub mod websocket;
 pub use client::Client;
 pub use credentials::BurnCentralCredentials;
 pub use error::ClientError;
+pub use websocket::WebSocketClient;
 
 pub mod response {
     pub use crate::artifact::response::*;
@@ -24,5 +26,3 @@ pub mod request {
     pub use crate::artifact::request::*;
     pub use crate::project::request::*;
 }
-
-pub use experiment::websocket;

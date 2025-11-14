@@ -57,7 +57,7 @@ impl ResponseExt for reqwest::blocking::Response {
 pub struct Client {
     pub(crate) http_client: reqwest::blocking::Client,
     pub(crate) base_url: Url,
-    session_cookie: Option<String>,
+    pub(crate) session_cookie: Option<String>,
 }
 
 impl Client {
