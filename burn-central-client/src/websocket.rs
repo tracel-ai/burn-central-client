@@ -33,13 +33,14 @@ struct ConnectedSocket {
     cookie: String,
 }
 
+#[derive(Default)]
 pub struct WebSocketClient {
     state: Option<ConnectedSocket>,
 }
 
 impl WebSocketClient {
     pub fn new() -> Self {
-        Self { state: None }
+        Self::default()
     }
 
     #[allow(dead_code)]
