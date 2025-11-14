@@ -3,7 +3,7 @@
 # https://doc.rust-lang.org/cargo/reference/resolver.html#feature-resolver-version-2
 resolver = "2"
 
-members = ["burn-central-api", "xtask"]
+members = ["burn-central-client", "xtask"]
 
 [workspace.package]
 edition = "2024"
@@ -20,6 +20,7 @@ serde_json = { version = "1.0.145" }
 uuid = { version = "1.18.1" }
 thiserror = { version = "2.0.17" }
 strum = { version = "0.27.2", features = ["derive"] }
+tungstenite = { version = "0.26.2", features = ["native-tls"] }
 
 [profile.dev]
 debug = 0

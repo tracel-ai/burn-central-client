@@ -1,5 +1,5 @@
 [package]
-name = "burn-central-api"
+name = "burn-central-client"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -15,3 +15,4 @@ uuid.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 strum.workspace = true
+tungstenite.workspace = true 
