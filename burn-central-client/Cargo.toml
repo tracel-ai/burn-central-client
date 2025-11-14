@@ -1,5 +1,5 @@
 [package]
-name = "burn-central-api"
+name = "burn-central-client"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
