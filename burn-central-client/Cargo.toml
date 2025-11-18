@@ -17,3 +17,4 @@ serde_json.workspace = true
 thiserror.workspace = true
 strum.workspace = true
 tungstenite.workspace = true 
+derive-new = "0.7.0"

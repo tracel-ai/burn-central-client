@@ -1,3 +1,4 @@
+use derive_new::new;
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
@@ -14,21 +15,31 @@ pub enum ExperimentCompletion {
     Fail { reason: String },
 }
 
+#[derive(Debug, Serialize, new)]
+pub struct MetricLog {
+    name: String,
+    value: f64,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(tag = "type", content = "data", rename_all = "snake_case")]
 pub enum ExperimentMessage {
-    MetricLog {
-        name: String,
+    MetricsLog {
         epoch: usize,
+        split: String,
         iteration: usize,
-        value: f64,
-        group: String,
+        items: Vec<MetricLog>,
     },
     MetricDefinitionLog {
         name: String,
         description: Option<String>,
         unit: Option<String>,
         higher_is_better: bool,
+    },
+    EpochSummaryLog {
+        epoch: usize,
+        split: String,
+        best_metric_values: Vec<MetricLog>,
     },
     Log(String),
     Arguments(serde_json::Value),
