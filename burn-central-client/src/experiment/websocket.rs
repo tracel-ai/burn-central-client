@@ -1,4 +1,3 @@
-use derive_new::new;
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
@@ -15,10 +14,10 @@ pub enum ExperimentCompletion {
     Fail { reason: String },
 }
 
-#[derive(Debug, Serialize, new)]
+#[derive(Debug, Serialize)]
 pub struct MetricLog {
-    name: String,
-    value: f64,
+    pub name: String,
+    pub value: f64,
 }
 
 #[derive(Debug, Serialize)]
