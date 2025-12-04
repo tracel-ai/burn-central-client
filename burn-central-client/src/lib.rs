@@ -10,6 +10,7 @@ mod user;
 
 pub mod websocket;
 pub use client::Client;
+pub use client::Env;
 pub use credentials::BurnCentralCredentials;
 pub use error::ClientError;
 pub use websocket::WebSocketClient;
