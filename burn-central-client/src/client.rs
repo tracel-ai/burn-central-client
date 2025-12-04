@@ -88,6 +88,13 @@ impl Client {
         Ok(client)
     }
 
+    pub fn from_url(url: Url, credentials: &BurnCentralCredentials) -> Result<Self, ClientError> {
+        let mut client = Self::new_without_credentials(url);
+        let cookie = client.login(credentials)?;
+        client.session_cookie = Some(cookie);
+        Ok(client)
+    }
+
     /// Create a new HttpClient without credentials.
     pub fn new_without_credentials(base_url: Url) -> Self {
         Client {
