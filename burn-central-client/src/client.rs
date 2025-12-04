@@ -60,10 +60,28 @@ pub struct Client {
     pub(crate) session_cookie: Option<String>,
 }
 
+pub enum Env {
+    Production,
+    Staging(u8),
+    Development,
+}
+
+impl Env {
+    fn get_url(&self) -> Url {
+        match self {
+            Env::Production => Url::parse("https:/central.burn.dev/api").unwrap(),
+            Env::Staging(version) => {
+                Url::parse(&format!("https://s{}-central.burn.dev/api", version)).unwrap()
+            }
+            Env::Development => Url::parse("http://localhost:9001/").unwrap(),
+        }
+    }
+}
+
 impl Client {
     /// Create a new HttpClient with the given base URL and API key.
-    pub fn new(base_url: Url, credentials: &BurnCentralCredentials) -> Result<Self, ClientError> {
-        let mut client = Self::new_without_credentials(base_url);
+    pub fn new(env: Env, credentials: &BurnCentralCredentials) -> Result<Self, ClientError> {
+        let mut client = Self::new_without_credentials(env.get_url());
         let cookie = client.login(credentials)?;
         client.session_cookie = Some(cookie);
         Ok(client)
