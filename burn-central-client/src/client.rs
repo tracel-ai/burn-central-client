@@ -96,6 +96,10 @@ impl Client {
         }
     }
 
+    pub fn get_endpoint(&self) -> &Url {
+        &self.base_url
+    }
+
     pub(crate) fn get_json<R>(&self, path: impl AsRef<str>) -> Result<R, ClientError>
     where
         R: for<'de> serde::Deserialize<'de>,
