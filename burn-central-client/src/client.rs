@@ -88,7 +88,7 @@ impl Client {
             http_client: reqwest::blocking::Client::new(),
             base_url: env.get_url(),
             session_cookie: None,
-            env: env,
+            env,
         };
 
         let cookie = client.login(credentials)?;
