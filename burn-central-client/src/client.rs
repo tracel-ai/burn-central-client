@@ -72,9 +72,9 @@ pub enum Env {
 impl Env {
     pub fn get_url(&self) -> Url {
         match self {
-            Env::Production => Url::parse("https:/central.burn.dev/api").unwrap(),
+            Env::Production => Url::parse("https://central.burn.dev/api/").unwrap(),
             Env::Staging(version) => {
-                Url::parse(&format!("https://s{}-central.burn.dev/api", version)).unwrap()
+                Url::parse(&format!("https://s{}-central.burn.dev/api/", version)).unwrap()
             }
             Env::Development => Url::parse("http://localhost:9001/").unwrap(),
         }
