@@ -1,5 +1,6 @@
 use reqwest::Url;
 use reqwest::header::COOKIE;
+use serde::{Deserialize, Serialize};
 
 use crate::credentials::BurnCentralCredentials;
 use crate::error::{ApiErrorBody, ApiErrorCode, ClientError};
@@ -58,9 +59,10 @@ pub struct Client {
     pub(crate) http_client: reqwest::blocking::Client,
     pub(crate) base_url: Url,
     pub(crate) session_cookie: Option<String>,
+    pub(crate) env: Env,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Env {
     Production,
     Staging(u8),
@@ -81,31 +83,42 @@ impl Env {
 
 impl Client {
     /// Create a new HttpClient with the given base URL and API key.
-    pub fn new(env: &Env, credentials: &BurnCentralCredentials) -> Result<Self, ClientError> {
-        let mut client = Self::new_without_credentials(env.get_url());
-        let cookie = client.login(credentials)?;
-        client.session_cookie = Some(cookie);
-        Ok(client)
-    }
-
-    pub fn from_url(url: Url, credentials: &BurnCentralCredentials) -> Result<Self, ClientError> {
-        let mut client = Self::new_without_credentials(url);
-        let cookie = client.login(credentials)?;
-        client.session_cookie = Some(cookie);
-        Ok(client)
-    }
-
-    /// Create a new HttpClient without credentials.
-    pub fn new_without_credentials(base_url: Url) -> Self {
-        Client {
+    pub fn new(env: Env, credentials: &BurnCentralCredentials) -> Result<Self, ClientError> {
+        let mut client = Client {
             http_client: reqwest::blocking::Client::new(),
-            base_url,
+            base_url: env.get_url(),
             session_cookie: None,
-        }
+            env: env,
+        };
+
+        let cookie = client.login(credentials)?;
+        client.session_cookie = Some(cookie);
+        Ok(client)
     }
 
+    #[deprecated]
+    /// Please use environnement based constructor
+    pub fn from_url(url: Url, credentials: &BurnCentralCredentials) -> Result<Self, ClientError> {
+        let mut client = Client {
+            http_client: reqwest::blocking::Client::new(),
+            base_url: url,
+            session_cookie: None,
+            env: Env::Production,
+        };
+
+        let cookie = client.login(credentials)?;
+        client.session_cookie = Some(cookie);
+        Ok(client)
+    }
+
+    #[deprecated]
+    /// Please use environnement instead of url
     pub fn get_endpoint(&self) -> &Url {
         &self.base_url
+    }
+
+    pub fn get_env(&self) -> &Env {
+        &self.env
     }
 
     pub(crate) fn get_json<R>(&self, path: impl AsRef<str>) -> Result<R, ClientError>
