@@ -97,7 +97,7 @@ impl Client {
     }
 
     #[deprecated]
-    /// Please use environnement based constructor
+    /// Please use environment based constructor
     pub fn from_url(url: Url, credentials: &BurnCentralCredentials) -> Result<Self, ClientError> {
         let mut client = Client {
             http_client: reqwest::blocking::Client::new(),
@@ -112,7 +112,7 @@ impl Client {
     }
 
     #[deprecated]
-    /// Please use environnement instead of url
+    /// Please use environment instead of url
     pub fn get_endpoint(&self) -> &Url {
         &self.base_url
     }
