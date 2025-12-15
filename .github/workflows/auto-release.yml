@@ -1,0 +1,64 @@
+name: Auto Release
+
+on:
+  push:
+    branches:
+      - main
+
+# Prevent concurrent runs but don't cancel in-progress ones
+# This avoids race conditions while ensuring all pushes are processed
+concurrency:
+  group: auto-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write  # Required for creating tags and releases
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for accurate tag checking
+
+      - name: Extract version from Cargo.toml
+        id: version
+        run: |
+          VERSION=$(grep -A 10 '^\[workspace.package\]' Cargo.toml | grep '^version' | cut -d'"' -f2)
+
+          if [ -z "$VERSION" ]; then
+            echo "Error: Could not extract version from Cargo.toml"
+            exit 1
+          fi
+
+          # Validate semver format (basic check)
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+'; then
+            echo "Error: Invalid version format: $VERSION"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+
+          if git ls-remote --tags origin | grep -q "refs/tags/${TAG}$"; then
+            echo "Release $TAG already exists, nothing to do."
+          else
+            echo "Creating release for $TAG..."
+
+            gh release create "$TAG" \
+              --title "$TAG" \
+              --generate-notes \
+              --target main
+
+            echo "Successfully created release $TAG"
+          fi
