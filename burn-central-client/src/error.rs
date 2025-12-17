@@ -69,13 +69,6 @@ impl ClientError {
         }
     }
 
-    pub fn message(&self) -> Option<String> {
-        match self {
-            ClientError::ApiError { body, .. } => Some(body.message.clone()),
-            _ => None,
-        }
-    }
-
     pub fn is_login_error(&self) -> bool {
         matches!(self, ClientError::Unauthorized)
     }
