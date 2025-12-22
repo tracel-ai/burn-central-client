@@ -32,7 +32,6 @@ impl ResponseExt for reqwest::blocking::Response {
             match self.status() {
                 reqwest::StatusCode::NOT_FOUND => Err(ClientError::NotFound),
                 reqwest::StatusCode::UNAUTHORIZED => Err(ClientError::Unauthorized),
-                reqwest::StatusCode::FORBIDDEN => Err(ClientError::Forbidden),
                 reqwest::StatusCode::INTERNAL_SERVER_ERROR => Err(ClientError::InternalServerError),
                 _ => Err(ClientError::ApiError {
                     status: self.status(),

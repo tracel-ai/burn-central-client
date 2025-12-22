@@ -9,6 +9,7 @@ use thiserror::Error;
 pub enum ApiErrorCode {
     ProjectAlreadyExists,
     UnsupportedSdkVersion,
+    LimitReached,
     // ...
     #[serde(other)]
     Unknown,
@@ -31,7 +32,7 @@ impl Default for ApiErrorBody {
 
 impl Display for ApiErrorBody {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Code: {}, Message: {}", self.code, self.message)
+        write!(f, "{}: {}", self.code, self.message)
     }
 }
 
@@ -43,8 +44,6 @@ pub enum ClientError {
     NotFound,
     #[error("Unauthorized access")]
     Unauthorized,
-    #[error("Forbidden access")]
-    Forbidden,
     #[error("Internal server error")]
     InternalServerError,
     #[error("Api error {status}: {body}")]
@@ -71,6 +70,6 @@ impl ClientError {
     }
 
     pub fn is_login_error(&self) -> bool {
-        matches!(self, ClientError::Unauthorized | ClientError::Forbidden)
+        matches!(self, ClientError::Unauthorized)
     }
 }
