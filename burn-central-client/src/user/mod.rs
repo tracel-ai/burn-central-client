@@ -13,12 +13,14 @@ impl Client {
     pub fn login(&self, credentials: &BurnCentralCredentials) -> Result<String, ClientError> {
         let url = self.join("login/api-key");
 
-        let res = self
+        let form = self
             .http_client
             .post(url)
-            .form::<BurnCentralCredentials>(credentials)
-            .send()?
-            .map_to_burn_central_err()?;
+            .form::<BurnCentralCredentials>(credentials);
+
+        tracing::debug!("Requesting login form: {form:?}");
+
+        let res = form.send()?.map_to_burn_central_err()?;
 
         let cookie_header = res.headers().get(SET_COOKIE);
         if let Some(cookie) = cookie_header {
