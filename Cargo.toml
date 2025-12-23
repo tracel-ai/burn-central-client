@@ -7,7 +7,7 @@ members = ["burn-central-client", "xtask"]
 
 [workspace.package]
 edition = "2024"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["Burn central team"]
 homepage = "https://burn.dev"
 repository = "https://github.com/tracel-ai/burn-central-client"
@@ -21,6 +21,7 @@ uuid = { version = "1.18.1" }
 thiserror = { version = "2.0.17" }
 strum = { version = "0.27.2", features = ["derive"] }
 tungstenite = { version = "0.26.2", features = ["native-tls"] }
+tracing = { version = "0.1" }
 
 [profile.dev]
 debug = 0

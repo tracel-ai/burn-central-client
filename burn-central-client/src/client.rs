@@ -174,7 +174,11 @@ impl Client {
         }
         request_builder = request_builder.header("X-SDK-Version", env!("CARGO_PKG_VERSION"));
 
+        tracing::debug!("Sending request to Burn Central: {:?}", request_builder);
+
         let response = request_builder.send()?.map_to_burn_central_err()?;
+
+        tracing::debug!("Received response from Burn Central: {:?}", response);
 
         Ok(response)
     }
