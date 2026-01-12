@@ -91,6 +91,7 @@ impl WebSocketClient {
         match Self::attempt_send(socket, &json) {
             Ok(_) => Ok(()),
             Err(_) => {
+                tracing::debug!("WebSocket send failed, attempting to reconnect...");
                 thread::sleep(DEFAULT_RECONNECT_DELAY);
                 self.reconnect()?;
 
@@ -111,6 +112,24 @@ impl WebSocketClient {
         socket
             .close(None)
             .map_err(|e| WebSocketError::SendError(e.to_string()))
+    }
+
+    pub fn wait_until_closed(&mut self) -> Result<(), WebSocketError> {
+        let socket = self.active_socket()?;
+        loop {
+            match socket.read() {
+                Ok(_) => {}
+                Err(tungstenite::Error::ConnectionClosed | tungstenite::Error::AlreadyClosed) => {
+                    tracing::debug!("WebSocket connection closed");
+                    break;
+                }
+                Err(e) => {
+                    tracing::error!("WebSocket read error while waiting until closed: {e}");
+                    return Err(WebSocketError::SendError(e.to_string()));
+                }
+            }
+        }
+        Ok(())
     }
 
     fn active_socket(&mut self) -> Result<&mut Socket, WebSocketError> {
