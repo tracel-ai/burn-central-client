@@ -119,12 +119,7 @@ impl WebSocketClient {
         loop {
             match socket.read() {
                 Ok(_) => {}
-                Err(e)
-                    if matches!(
-                        e,
-                        tungstenite::Error::ConnectionClosed | tungstenite::Error::AlreadyClosed
-                    ) =>
-                {
+                Err(tungstenite::Error::ConnectionClosed | tungstenite::Error::AlreadyClosed) => {
                     tracing::debug!("WebSocket connection closed");
                     break;
                 }
