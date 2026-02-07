@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -49,4 +49,10 @@ pub enum ExperimentMessage {
     InputUsed(InputUsed),
     Error(String),
     ExperimentComplete(ExperimentCompletion),
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(tag = "type", content = "data", rename_all = "snake_case")]
+pub enum ServerMessage {
+    CancelRequested,
 }
