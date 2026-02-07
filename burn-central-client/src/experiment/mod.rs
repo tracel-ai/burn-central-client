@@ -69,4 +69,20 @@ impl Client {
 
         Ok(ws_client)
     }
+
+    /// Cancel an experiment.
+    ///
+    /// The client must be logged in before calling this method.
+    pub fn cancel_experiment(
+        &self,
+        owner_name: &str,
+        project_name: &str,
+        exp_num: i32,
+    ) -> Result<(), ClientError> {
+        let url = self.join(&format!(
+            "projects/{owner_name}/{project_name}/experiments/{exp_num}/cancel"
+        ));
+
+        self.post(url, None::<()>)
+    }
 }
