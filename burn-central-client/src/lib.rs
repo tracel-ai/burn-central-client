@@ -8,16 +8,20 @@ mod model;
 mod project;
 mod user;
 
+pub mod fleet;
 pub mod websocket;
+
 pub use client::Client;
 pub use client::Env;
 pub use credentials::BurnCentralCredentials;
 pub use error::ClientError;
+pub use fleet::FleetClient;
 pub use websocket::WebSocketClient;
 
 pub mod response {
     pub use crate::artifact::response::*;
     pub use crate::experiment::response::*;
+    pub use crate::fleet::response::*;
     pub use crate::model::response::*;
     pub use crate::project::response::*;
     pub use crate::user::response::*;
@@ -25,5 +29,6 @@ pub mod response {
 
 pub mod request {
     pub use crate::artifact::request::*;
+    pub use crate::fleet::request::*;
     pub use crate::project::request::*;
 }
