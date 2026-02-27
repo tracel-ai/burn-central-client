@@ -6,7 +6,9 @@ pub mod response;
 use crate::ClientError;
 use crate::Env;
 use crate::client::ResponseExt;
-use request::{DownloadModelRequest, SyncDeviceRequest};
+use request::{
+    DownloadModelRequest, IngestTelemetryRequest, SyncDeviceRequest, TelemetryIngestionEvents,
+};
 use reqwest::Url;
 use response::{FleetModelDownloadResponse, FleetSyncSnapshotResponse};
 
@@ -62,6 +64,29 @@ impl FleetClient {
         };
 
         self.post_json("fleets/device/model/download", Some(request))
+    }
+
+    /// Ingest telemetry events for a fleet device.
+    pub fn ingest_telemetry(
+        &self,
+        registration_token: impl Into<String>,
+        identity_key: impl Into<String>,
+        events: TelemetryIngestionEvents,
+    ) -> Result<(), ClientError> {
+        let request = IngestTelemetryRequest {
+            registration_token: registration_token.into(),
+            identity_key: identity_key.into(),
+            events,
+        };
+
+        self.post("fleets/device/telemetry", Some(request))
+    }
+
+    fn post<T>(&self, path: impl AsRef<str>, body: Option<T>) -> Result<(), ClientError>
+    where
+        T: serde::Serialize,
+    {
+        self.req(reqwest::Method::POST, path, body).map(|_| ())
     }
 
     fn post_json<T, R>(&self, path: impl AsRef<str>, body: Option<T>) -> Result<R, ClientError>
