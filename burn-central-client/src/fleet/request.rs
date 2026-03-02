@@ -31,7 +31,7 @@ pub enum MetricData {
         value: f64,
     },
     Counter {
-        value: f64,
+        value: u64,
     },
     Histogram {
         count: u64,
@@ -51,11 +51,20 @@ pub struct MetricIngestionEvent {
     pub data: MetricData,
 }
 
+/// Kind of metric (gauge, counter, histogram).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum MetricKind {
+    Gauge,
+    Counter,
+    Histogram,
+}
+
 /// Optional metadata/descriptor attached to a metric name.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MetricDescriptorIngestionEvent {
     pub name: String,
-    pub kind: String,
+    pub kind: MetricKind,
     pub unit: Option<String>,
     pub description: Option<String>,
 }
