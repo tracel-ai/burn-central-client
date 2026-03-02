@@ -32,3 +32,9 @@ pub struct FleetModelDownloadResponse {
     /// List of presigned URLs for each model file.
     pub files: Vec<FleetPresignedModelFileUrlResponse>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FleetDeviceAuthTokenResponse {
+    pub access_token: String,
+    pub expires_in_seconds: u64,
+}

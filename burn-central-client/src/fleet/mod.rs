@@ -6,6 +6,8 @@ pub mod response;
 use crate::ClientError;
 use crate::Env;
 use crate::client::ResponseExt;
+use crate::request::ExchangeFleetDeviceTokenRequest;
+use crate::response::FleetDeviceAuthTokenResponse;
 use request::{
     DownloadModelRequest, IngestTelemetryRequest, SyncDeviceRequest, TelemetryIngestionEvents,
 };
@@ -36,57 +38,65 @@ impl FleetClient {
         }
     }
 
-    /// Sync device state with the fleet.
-    pub fn sync(
+    /// Register the device and exchange credentials for a JWT.
+    pub fn register(
         &self,
         registration_token: impl Into<String>,
         identity_key: impl Into<String>,
         metadata: Option<serde_json::Value>,
-    ) -> Result<FleetSyncSnapshotResponse, ClientError> {
-        let request = SyncDeviceRequest {
+    ) -> Result<FleetDeviceAuthTokenResponse, ClientError> {
+        let request = ExchangeFleetDeviceTokenRequest {
             registration_token: registration_token.into(),
             identity_key: identity_key.into(),
             metadata,
         };
 
-        self.post_json("fleets/device/sync", Some(request))
+        self.post_json("fleets/device/register", Some(request))
+    }
+
+    /// Sync device state with the fleet.
+    pub fn sync(
+        &self,
+        token: impl AsRef<str>,
+        metadata: Option<serde_json::Value>,
+    ) -> Result<FleetSyncSnapshotResponse, ClientError> {
+        let request = SyncDeviceRequest { metadata };
+
+        self.post_auth_json("fleets/device/sync", Some(request), token)
     }
 
     /// Get the model download information for the device's assigned fleet.
     pub fn model_download(
         &self,
-        registration_token: impl Into<String>,
-        identity_key: impl Into<String>,
+        auth_token: impl AsRef<str>,
     ) -> Result<FleetModelDownloadResponse, ClientError> {
-        let request = DownloadModelRequest {
-            registration_token: registration_token.into(),
-            identity_key: identity_key.into(),
-        };
+        let request = DownloadModelRequest {};
 
-        self.post_json("fleets/device/model/download", Some(request))
+        self.post_auth_json("fleets/device/model/download", Some(request), auth_token)
     }
 
     /// Ingest telemetry events for a fleet device.
     pub fn ingest_telemetry(
         &self,
-        registration_token: impl Into<String>,
-        identity_key: impl Into<String>,
+        auth_token: impl AsRef<str>,
         events: TelemetryIngestionEvents,
     ) -> Result<(), ClientError> {
-        let request = IngestTelemetryRequest {
-            registration_token: registration_token.into(),
-            identity_key: identity_key.into(),
-            events,
-        };
+        let request = IngestTelemetryRequest { events };
 
-        self.post("fleets/device/telemetry", Some(request))
+        self.post_auth("fleets/device/telemetry", Some(request), auth_token)
     }
 
-    fn post<T>(&self, path: impl AsRef<str>, body: Option<T>) -> Result<(), ClientError>
+    fn post_auth<T>(
+        &self,
+        path: impl AsRef<str>,
+        body: Option<T>,
+        auth_token: impl AsRef<str>,
+    ) -> Result<(), ClientError>
     where
         T: serde::Serialize,
     {
-        self.req(reqwest::Method::POST, path, body).map(|_| ())
+        self.req(reqwest::Method::POST, path, body, Some(auth_token.as_ref()))
+            .map(|_| ())
     }
 
     fn post_json<T, R>(&self, path: impl AsRef<str>, body: Option<T>) -> Result<R, ClientError>
@@ -94,7 +104,23 @@ impl FleetClient {
         T: serde::Serialize,
         R: for<'de> serde::Deserialize<'de>,
     {
-        let response = self.req(reqwest::Method::POST, path, body)?;
+        let response = self.req(reqwest::Method::POST, path, body, None)?;
+        let bytes = response.bytes()?;
+        let json = serde_json::from_slice::<R>(&bytes)?;
+        Ok(json)
+    }
+
+    fn post_auth_json<T, R>(
+        &self,
+        path: impl AsRef<str>,
+        body: Option<T>,
+        auth_token: impl AsRef<str>,
+    ) -> Result<R, ClientError>
+    where
+        T: serde::Serialize,
+        R: for<'de> serde::Deserialize<'de>,
+    {
+        let response = self.req(reqwest::Method::POST, path, body, Some(auth_token.as_ref()))?;
         let bytes = response.bytes()?;
         let json = serde_json::from_slice::<R>(&bytes)?;
         Ok(json)
@@ -105,17 +131,22 @@ impl FleetClient {
         method: reqwest::Method,
         path: impl AsRef<str>,
         body: Option<T>,
+        auth_token: Option<&str>,
     ) -> Result<reqwest::blocking::Response, ClientError> {
         let url = self.join(path.as_ref());
         let request_builder = self.http_client.request(method, url);
 
-        let request_builder = if let Some(body) = body {
+        let mut request_builder = if let Some(body) = body {
             request_builder
                 .body(serde_json::to_vec(&body)?)
                 .header(reqwest::header::CONTENT_TYPE, "application/json")
         } else {
             request_builder
         };
+
+        if let Some(token) = auth_token {
+            request_builder = request_builder.bearer_auth(token);
+        }
 
         let request_builder = request_builder.header("X-SDK-Version", env!("CARGO_PKG_VERSION"));
 

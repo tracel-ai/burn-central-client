@@ -4,10 +4,6 @@ use std::collections::HashMap;
 /// Request to sync device state with the fleet.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SyncDeviceRequest {
-    /// Fleet registration token provided by the fleet administrator.
-    pub registration_token: String,
-    /// Unique identity key for the device (stable across runs).
-    pub identity_key: String,
     /// Optional updated metadata about the device.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub metadata: Option<serde_json::Value>,
@@ -15,12 +11,7 @@ pub struct SyncDeviceRequest {
 
 /// Request to download model files.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DownloadModelRequest {
-    /// Fleet registration token provided by the fleet administrator.
-    pub registration_token: String,
-    /// Unique identity key for the device (stable across runs).
-    pub identity_key: String,
-}
+pub struct DownloadModelRequest {}
 
 /// Supported metric payload variants.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -93,10 +84,14 @@ pub struct TelemetryIngestionEvents {
 /// Request to ingest telemetry for a device.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct IngestTelemetryRequest {
-    /// Fleet registration token provided by the fleet administrator.
-    pub registration_token: String,
-    /// Unique identity key for the device (stable across runs).
-    pub identity_key: String,
     /// Telemetry events to ingest.
     pub events: TelemetryIngestionEvents,
+}
+
+/// Request to exchange a registration token for a device JWT after successful fleet registration.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExchangeFleetDeviceTokenRequest {
+    pub registration_token: String,
+    pub identity_key: String,
+    pub metadata: Option<serde_json::Value>,
 }
