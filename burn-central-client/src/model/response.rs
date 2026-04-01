@@ -42,7 +42,44 @@ pub struct ModelDownloadResponse {
 }
 
 #[derive(Deserialize, Clone, Debug)]
+pub struct ModelListResponse {
+    pub items: Vec<ModelResponse>,
+    pub total: usize,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct CheckModelNameResponse {
+    pub model_name: String,
+    pub available: bool,
+}
+
+#[derive(Deserialize, Clone, Debug)]
 pub struct PresignedModelFileUrlResponse {
     pub rel_path: String,
     pub url: String,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct ModelUploadPartResponse {
+    pub part: u32,
+    pub url: String,
+    pub size_bytes: u64,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct ModelMultipartUploadResponse {
+    pub id: String,
+    pub parts: Vec<ModelUploadPartResponse>,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct PresignedModelFileUploadUrlsResponse {
+    pub rel_path: String,
+    pub urls: ModelMultipartUploadResponse,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct ModelVersionUploadResponse {
+    pub version: u32,
+    pub files: Vec<PresignedModelFileUploadUrlsResponse>,
 }

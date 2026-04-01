@@ -30,5 +30,6 @@ pub mod response {
 pub mod request {
     pub use crate::artifact::request::*;
     pub use crate::fleet::request::*;
+    pub use crate::model::request::*;
     pub use crate::project::request::*;
 }
