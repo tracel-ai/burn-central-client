@@ -26,11 +26,11 @@ impl Client {
         exp_num: i32,
         req: CreateArtifactRequest,
     ) -> Result<ArtifactCreationResponse, ClientError> {
-        let url = self.join(&format!(
+        let url = self.transport.join(&format!(
             "projects/{owner_name}/{project_name}/experiments/{exp_num}/artifacts"
         ));
 
-        self.post_json::<CreateArtifactRequest, ArtifactCreationResponse>(url, Some(req))
+        self.transport.post_json(url, Some(req))
     }
 
     /// Add files to an existing artifact.
@@ -44,14 +44,12 @@ impl Client {
         artifact_id: &str,
         files: Vec<ArtifactFileSpecRequest>,
     ) -> Result<ArtifactAddFileResponse, ClientError> {
-        let url = self.join(&format!(
+        let url = self.transport.join(&format!(
             "projects/{owner_name}/{project_name}/experiments/{exp_num}/artifacts/{artifact_id}/files"
         ));
 
-        self.post_json::<AddFilesToArtifactRequest, ArtifactAddFileResponse>(
-            url,
-            Some(AddFilesToArtifactRequest { files }),
-        )
+        self.transport
+            .post_json(url, Some(AddFilesToArtifactRequest { files }))
     }
 
     /// Complete an artifact upload.
@@ -68,12 +66,12 @@ impl Client {
         artifact_id: &str,
         file_names: Option<Vec<String>>,
     ) -> Result<(), ClientError> {
-        let url = self.join(&format!(
+        let url = self.transport.join(&format!(
             "projects/{owner_name}/{project_name}/experiments/{exp_num}/artifacts/{artifact_id}/complete"
         ));
 
-        let body = Some(CompleteUploadRequest { file_names });
-        self.post(url, body)
+        self.transport
+            .post(url, Some(CompleteUploadRequest { file_names }))
     }
 
     /// List artifacts for the given experiment.
@@ -85,11 +83,11 @@ impl Client {
         project_name: &str,
         exp_num: i32,
     ) -> Result<ArtifactListResponse, ClientError> {
-        let url = self.join(&format!(
+        let url = self.transport.join(&format!(
             "projects/{owner_name}/{project_name}/experiments/{exp_num}/artifacts"
         ));
 
-        self.get_json::<ArtifactListResponse>(url)
+        self.transport.get_json(url)
     }
 
     /// Query artifacts by name for the given experiment.
@@ -102,12 +100,12 @@ impl Client {
         exp_num: i32,
         name: &str,
     ) -> Result<ArtifactListResponse, ClientError> {
-        let mut url = self.join(&format!(
+        let mut url = self.transport.join(&format!(
             "projects/{owner_name}/{project_name}/experiments/{exp_num}/artifacts"
         ));
         url.query_pairs_mut().append_pair("name", name);
 
-        self.get_json::<ArtifactListResponse>(url)
+        self.transport.get_json(url)
     }
 
     /// Get details about a specific artifact by its ID.
@@ -120,11 +118,11 @@ impl Client {
         exp_num: i32,
         artifact_id: &str,
     ) -> Result<ArtifactResponse, ClientError> {
-        let url = self.join(&format!(
+        let url = self.transport.join(&format!(
             "projects/{owner_name}/{project_name}/experiments/{exp_num}/artifacts/{artifact_id}"
         ));
 
-        self.get_json::<ArtifactResponse>(url)
+        self.transport.get_json(url)
     }
 
     /// Request presigned URLs to download an artifact's files from the Burn Central server.
@@ -137,10 +135,10 @@ impl Client {
         exp_num: i32,
         artifact_id: &str,
     ) -> Result<ArtifactDownloadResponse, ClientError> {
-        let url = self.join(&format!(
+        let url = self.transport.join(&format!(
             "projects/{owner_name}/{project_name}/experiments/{exp_num}/artifacts/{artifact_id}/download"
         ));
 
-        self.get_json::<ArtifactDownloadResponse>(url)
+        self.transport.get_json(url)
     }
 }

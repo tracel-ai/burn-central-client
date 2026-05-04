@@ -11,10 +11,10 @@ use crate::{
 impl Client {
     /// Formats a WebSocket URL for the given experiment.
     fn format_websocket_url(&self, owner_name: &str, project_name: &str, exp_num: i32) -> String {
-        let mut url = self.join(&format!(
-            "projects/{owner_name}/{project_name}/experiments/{exp_num}/ws"
-        ));
-        url.set_scheme(if self.base_url.scheme() == "https" {
+        let path: &str = &format!("projects/{owner_name}/{project_name}/experiments/{exp_num}/ws");
+        let mut url = self.transport.join(path);
+
+        url.set_scheme(if self.transport.base_url().scheme() == "https" {
             "wss"
         } else {
             "ws"
@@ -35,10 +35,11 @@ impl Client {
         code_version_digest: String,
         routine: String,
     ) -> Result<ExperimentResponse, ClientError> {
-        let url = self.join(&format!("projects/{owner_name}/{project_name}/experiments"));
+        let path: &str = &format!("projects/{owner_name}/{project_name}/experiments");
+        let url = self.transport.join(path);
 
         // Create a new experiment
-        let experiment_response = self.post_json::<CreateExperimentSchema, ExperimentResponse>(
+        let experiment_response = self.transport.post_json(
             url,
             Some(CreateExperimentSchema {
                 description,
@@ -61,10 +62,7 @@ impl Client {
         let ws_endpoint = self.format_websocket_url(owner_name, project_name, exp_num);
 
         ws_client
-            .connect(
-                ws_endpoint,
-                &self.session_cookie.clone().unwrap_or("".to_string()),
-            )
+            .connect(&ws_endpoint, self.transport.auth())
             .map_err(|e| WebSocketError::ConnectionError(e.to_string()))?;
 
         Ok(ws_client)
@@ -79,10 +77,9 @@ impl Client {
         project_name: &str,
         exp_num: i32,
     ) -> Result<(), ClientError> {
-        let url = self.join(&format!(
-            "projects/{owner_name}/{project_name}/experiments/{exp_num}/cancel"
-        ));
+        let path = &format!("projects/{owner_name}/{project_name}/experiments/{exp_num}/cancel");
+        let url = self.transport.join(path);
 
-        self.post(url, None::<()>)
+        self.transport.post(url, None::<()>)
     }
 }

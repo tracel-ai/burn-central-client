@@ -10,6 +10,7 @@ use tungstenite::{
 };
 
 pub use crate::experiment::websocket::*;
+use crate::transport::Auth;
 
 #[derive(Error, Debug)]
 #[allow(clippy::enum_variant_names)]
@@ -34,7 +35,7 @@ type Socket = WebSocket<MaybeTlsStream<std::net::TcpStream>>;
 struct ConnectedSocket {
     socket: Socket,
     url: String,
-    cookie: String,
+    auth: Auth,
 }
 
 #[derive(Default)]
@@ -43,7 +44,7 @@ pub struct WebSocketClient {
 }
 
 impl WebSocketClient {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self::default()
     }
 
@@ -52,18 +53,21 @@ impl WebSocketClient {
         self.state.is_some()
     }
 
-    pub fn connect(&mut self, url: String, session_cookie: &str) -> Result<(), WebSocketError> {
+    pub(crate) fn connect(&mut self, url: &str, auth: &Auth) -> Result<(), WebSocketError> {
         let mut req = url
-            .clone()
             .into_client_request()
             .expect("Should be able to create a client request from the URL");
 
-        req.headers_mut().append(
-            COOKIE,
-            session_cookie
-                .parse()
-                .expect("Should be able to parse cookie header"),
-        );
+        match &auth {
+            Auth::None => {}
+            Auth::SessionCookie(cookie) => {
+                req.headers_mut().insert(COOKIE, cookie.parse().unwrap());
+            }
+            Auth::Bearer(token) => {
+                req.headers_mut()
+                    .insert("Authorization", format!("Bearer {token}").parse().unwrap());
+            }
+        }
 
         let (mut socket, _) =
             connect(req).map_err(|e| WebSocketError::ConnectionError(e.to_string()))?;
@@ -77,17 +81,18 @@ impl WebSocketClient {
             WebSocketError::ConnectionError(format!("Failed to set non-blocking mode: {e}"))
         })?;
 
+        let url = url.to_string();
         self.state = Some(ConnectedSocket {
             socket,
             url,
-            cookie: session_cookie.to_string(),
+            auth: auth.clone(),
         });
         Ok(())
     }
 
-    pub fn reconnect(&mut self) -> Result<(), WebSocketError> {
+    fn reconnect(&mut self) -> Result<(), WebSocketError> {
         if let Some(socket) = self.state.take() {
-            self.connect(socket.url, &socket.cookie)
+            self.connect(&socket.url, &socket.auth)
         } else {
             Err(WebSocketError::CannotReconnect(
                 "The websocket was never opened so it cannot be reconnected".to_string(),

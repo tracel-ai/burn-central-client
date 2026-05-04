@@ -5,9 +5,9 @@ pub mod response;
 
 use crate::ClientError;
 use crate::Env;
-use crate::client::ResponseExt;
 use crate::request::ExchangeFleetDeviceTokenRequest;
 use crate::response::FleetDeviceAuthTokenResponse;
+use crate::transport::{ApiTransport, Auth};
 use request::{
     DownloadModelRequest, IngestTelemetryRequest, SyncDeviceRequest, TelemetryIngestionEvents,
 };
@@ -17,24 +17,21 @@ use response::{FleetModelDownloadResponse, FleetSyncSnapshotResponse};
 /// A client for interacting with the Burn Central Fleet API.
 #[derive(Debug, Clone)]
 pub struct FleetClient {
-    http_client: reqwest::blocking::Client,
-    base_url: Url,
+    transport: ApiTransport,
 }
 
 impl FleetClient {
     /// Create a new FleetClient for the given environment.
     pub fn new(env: Env) -> Self {
         FleetClient {
-            http_client: reqwest::blocking::Client::new(),
-            base_url: env.get_url(),
+            transport: ApiTransport::new(env.get_url()),
         }
     }
 
     /// Create a FleetClient with a custom base URL.
     pub fn from_url(url: Url) -> Self {
         FleetClient {
-            http_client: reqwest::blocking::Client::new(),
-            base_url: url,
+            transport: ApiTransport::new(url),
         }
     }
 
@@ -62,7 +59,8 @@ impl FleetClient {
     ) -> Result<FleetSyncSnapshotResponse, ClientError> {
         let request = SyncDeviceRequest { metadata };
 
-        self.post_auth_json("fleets/device/sync", Some(request), token)
+        self.with_bearer_auth(token)
+            .post_json("fleets/device/sync", Some(request))
     }
 
     /// Get the model download information for the device's assigned fleet.
@@ -72,7 +70,8 @@ impl FleetClient {
     ) -> Result<FleetModelDownloadResponse, ClientError> {
         let request = DownloadModelRequest {};
 
-        self.post_auth_json("fleets/device/model/download", Some(request), auth_token)
+        self.with_bearer_auth(auth_token)
+            .post_json("fleets/device/model/download", Some(request))
     }
 
     /// Ingest telemetry events for a fleet device.
@@ -83,20 +82,8 @@ impl FleetClient {
     ) -> Result<(), ClientError> {
         let request = IngestTelemetryRequest { events };
 
-        self.post_auth("fleets/device/telemetry", Some(request), auth_token)
-    }
-
-    fn post_auth<T>(
-        &self,
-        path: impl AsRef<str>,
-        body: Option<T>,
-        auth_token: impl AsRef<str>,
-    ) -> Result<(), ClientError>
-    where
-        T: serde::Serialize,
-    {
-        self.req(reqwest::Method::POST, path, body, Some(auth_token.as_ref()))
-            .map(|_| ())
+        self.with_bearer_auth(auth_token)
+            .post("fleets/device/telemetry", Some(request))
     }
 
     fn post_json<T, R>(&self, path: impl AsRef<str>, body: Option<T>) -> Result<R, ClientError>
@@ -104,70 +91,12 @@ impl FleetClient {
         T: serde::Serialize,
         R: for<'de> serde::Deserialize<'de>,
     {
-        let response = self.req(reqwest::Method::POST, path, body, None)?;
-        let bytes = response.bytes()?;
-        let json = serde_json::from_slice::<R>(&bytes)?;
-        Ok(json)
+        self.transport.post_json(path, body)
     }
 
-    fn post_auth_json<T, R>(
-        &self,
-        path: impl AsRef<str>,
-        body: Option<T>,
-        auth_token: impl AsRef<str>,
-    ) -> Result<R, ClientError>
-    where
-        T: serde::Serialize,
-        R: for<'de> serde::Deserialize<'de>,
-    {
-        let response = self.req(reqwest::Method::POST, path, body, Some(auth_token.as_ref()))?;
-        let bytes = response.bytes()?;
-        let json = serde_json::from_slice::<R>(&bytes)?;
-        Ok(json)
-    }
-
-    fn req<T: serde::Serialize>(
-        &self,
-        method: reqwest::Method,
-        path: impl AsRef<str>,
-        body: Option<T>,
-        auth_token: Option<&str>,
-    ) -> Result<reqwest::blocking::Response, ClientError> {
-        let url = self.join(path.as_ref());
-        let request_builder = self.http_client.request(method, url);
-
-        let mut request_builder = if let Some(body) = body {
-            request_builder
-                .body(serde_json::to_vec(&body)?)
-                .header(reqwest::header::CONTENT_TYPE, "application/json")
-        } else {
-            request_builder
-        };
-
-        if let Some(token) = auth_token {
-            request_builder = request_builder.bearer_auth(token);
-        }
-
-        let request_builder = request_builder.header("X-SDK-Version", env!("CARGO_PKG_VERSION"));
-
-        tracing::debug!("Sending fleet request: {:?}", request_builder);
-
-        let response = request_builder.send()?.map_to_burn_central_err()?;
-
-        tracing::debug!("Received fleet response: {:?}", response);
-
-        Ok(response)
-    }
-
-    fn join(&self, path: &str) -> Url {
-        self.join_versioned(path, 1)
-    }
-
-    fn join_versioned(&self, path: &str, version: u8) -> Url {
-        self.base_url
-            .join(&format!("v{version}/"))
-            .unwrap()
-            .join(path)
-            .expect("Should be able to join url")
+    fn with_bearer_auth(&self, auth_token: impl AsRef<str>) -> ApiTransport {
+        self.transport
+            .clone()
+            .with_auth(Auth::Bearer(auth_token.as_ref().to_string()))
     }
 }

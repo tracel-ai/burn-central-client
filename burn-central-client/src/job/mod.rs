@@ -11,7 +11,8 @@ impl Client {
         digest: &str,
         command: &str,
     ) -> Result<(), ClientError> {
-        let url = self.join(&format!("projects/{owner_name}/{project_name}/jobs/queue"));
+        let path: &str = &format!("projects/{owner_name}/{project_name}/jobs/queue");
+        let url = self.transport.join(path);
 
         let body = ComputeProviderQueueJobRequest {
             compute_provider_group_name: compute_provider_group_name.to_string(),
@@ -19,6 +20,6 @@ impl Client {
             command: command.to_string(),
         };
 
-        self.post(url, Some(body))
+        self.transport.post(url, Some(body))
     }
 }
