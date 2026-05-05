@@ -1,6 +1,5 @@
 pub mod request;
 pub mod response;
-pub mod websocket;
 
 pub use request::{
     AddFilesRequest, ArtifactFileSpecRequest, CompleteUploadRequest, CreateArtifactRequest,
