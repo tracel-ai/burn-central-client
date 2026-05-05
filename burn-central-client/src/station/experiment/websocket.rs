@@ -17,7 +17,7 @@ pub enum ExperimentCompletion {
 #[derive(Debug, Serialize)]
 pub struct MetricLog {
     pub name: String,
-    pub value: f64,
+    pub value: Option<f64>,
 }
 
 #[derive(Debug, Serialize)]

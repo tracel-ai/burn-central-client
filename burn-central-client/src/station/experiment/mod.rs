@@ -3,12 +3,18 @@ pub mod response;
 pub mod websocket;
 
 pub use request::{
-    CreateExperimentRequest, ListExperimentsQuery, MetricAggregatedQuery, MetricSummaryQuery,
+    AddFilesRequest, ArtifactFileSpecRequest, CompleteUploadRequest, CreateArtifactRequest,
+    CreateExperimentRequest, ListArtifactsQuery, ListExperimentsQuery, LogUrlsQuery,
+    MetricAggregatedQuery, MetricSummaryQuery,
 };
 pub use response::{
-    ExperimentInputResponse, ExperimentListResponse, ExperimentResponse, MetricEntryResponse,
-    MetricGroupResponse, MetricMetadataResponse, MetricResponse, MetricSummaryGroupResponse,
-    MetricSummaryResponse, TrainingFunctionResponse,
+    ArtifactCreationResponse, ArtifactDownloadResponse, ArtifactListResponse, ArtifactResponse,
+    DeleteExperimentArtifactResponse, ExperimentInputResponse, ExperimentListResponse,
+    ExperimentLogResponse, ExperimentResponse, LoadLogUrlResponse, LoadLogUrlsResponse,
+    MetricEntryResponse, MetricGroupResponse, MetricMetadataResponse, MetricResponse,
+    MetricSummaryGroupResponse, MetricSummaryResponse, MultipartUploadResponse,
+    PresignedArtifactFileUploadUrlsResponse, PresignedArtifactFileUrlResponse,
+    PresignedUploadUrlResponse, TrainingFunctionResponse,
 };
 
 use crate::{ClientError, WebSocketClient, transport::ApiTransport, websocket::WebSocketError};
@@ -115,5 +121,101 @@ impl<'a> ExperimentClient<'a> {
         ws_client.connect(&self.websocket_url(experiment_num), self.transport.auth())?;
 
         Ok(ws_client)
+    }
+
+    pub fn cancel(&self, experiment_num: i32) -> Result<(), ClientError> {
+        self.transport
+            .post(format!("experiments/{experiment_num}/cancel"), None::<()>)
+    }
+
+    pub fn create_artifact(
+        &self,
+        experiment_num: i32,
+        request: CreateArtifactRequest,
+    ) -> Result<ArtifactCreationResponse, ClientError> {
+        self.transport.post_json(
+            format!("experiments/{experiment_num}/artifacts"),
+            Some(request),
+        )
+    }
+
+    pub fn add_artifact_files(
+        &self,
+        experiment_num: i32,
+        artifact_id: impl std::fmt::Display,
+        request: AddFilesRequest,
+    ) -> Result<ArtifactCreationResponse, ClientError> {
+        self.transport.post_json(
+            format!("experiments/{experiment_num}/artifacts/{artifact_id}/files"),
+            Some(request),
+        )
+    }
+
+    pub fn complete_artifact_upload(
+        &self,
+        experiment_num: i32,
+        artifact_id: impl std::fmt::Display,
+        request: CompleteUploadRequest,
+    ) -> Result<(), ClientError> {
+        self.transport.post(
+            format!("experiments/{experiment_num}/artifacts/{artifact_id}/complete"),
+            Some(request),
+        )
+    }
+
+    pub fn presign_artifact_download(
+        &self,
+        experiment_num: i32,
+        artifact_id: impl std::fmt::Display,
+    ) -> Result<ArtifactDownloadResponse, ClientError> {
+        self.transport.get_json(format!(
+            "experiments/{experiment_num}/artifacts/{artifact_id}/download"
+        ))
+    }
+
+    pub fn list_artifacts(
+        &self,
+        experiment_num: i32,
+        query: ListArtifactsQuery,
+    ) -> Result<ArtifactListResponse, ClientError> {
+        let mut url = self
+            .transport
+            .join(&format!("experiments/{experiment_num}/artifacts"));
+        if let Some(name) = query.name {
+            url.query_pairs_mut().append_pair("name", &name);
+        }
+
+        self.transport.get_json(url)
+    }
+
+    pub fn delete_artifact(
+        &self,
+        experiment_num: i32,
+        artifact_id: impl std::fmt::Display,
+    ) -> Result<DeleteExperimentArtifactResponse, ClientError> {
+        self.transport.delete_json(format!(
+            "experiments/{experiment_num}/artifacts/{artifact_id}"
+        ))
+    }
+
+    pub fn realtime_logs(&self, experiment_num: i32) -> Result<ExperimentLogResponse, ClientError> {
+        self.transport
+            .get_json(format!("experiments/{experiment_num}/logs/realtime"))
+    }
+
+    pub fn logs(
+        &self,
+        experiment_num: i32,
+        query: LogUrlsQuery,
+    ) -> Result<LoadLogUrlsResponse, ClientError> {
+        let mut url = self
+            .transport
+            .join(&format!("experiments/{experiment_num}/logs"));
+        if let Some(start) = query.start {
+            url.query_pairs_mut()
+                .append_pair("start", &start.to_string());
+        }
+
+        self.transport.get_json(url)
     }
 }

@@ -131,6 +131,15 @@ impl ApiTransport {
             .map(|_| ())
     }
 
+    pub(super) fn delete_json<R>(&self, path: impl AsRef<str>) -> Result<R, ClientError>
+    where
+        R: for<'de> serde::Deserialize<'de>,
+    {
+        let response = self.req(reqwest::Method::DELETE, path, None::<serde_json::Value>)?;
+        let bytes = response.bytes()?;
+        Ok(serde_json::from_slice::<R>(&bytes)?)
+    }
+
     pub(super) fn req<T: serde::Serialize>(
         &self,
         method: reqwest::Method,
