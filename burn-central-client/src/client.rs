@@ -83,14 +83,4 @@ impl Client {
     pub fn get_env(&self) -> &Env {
         &self.env
     }
-
-    /// Generic method to upload bytes to the given URL.
-    pub fn upload_bytes_to_url(&self, url: &str, bytes: Vec<u8>) -> Result<(), ClientError> {
-        self.transport.upload_bytes_to_url(url, bytes)
-    }
-
-    /// Generic method to download bytes from the given URL.
-    pub fn download_bytes_from_url(&self, url: &str) -> Result<Vec<u8>, ClientError> {
-        self.transport.download_bytes_from_url(url)
-    }
 }

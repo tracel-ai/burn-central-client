@@ -10,6 +10,7 @@ mod transport;
 mod user;
 
 pub mod fleet;
+#[cfg(feature = "station")]
 pub mod station;
 pub mod websocket;
 
@@ -18,6 +19,7 @@ pub use client::Env;
 pub use credentials::BurnCentralCredentials;
 pub use error::ClientError;
 pub use fleet::FleetClient;
+#[cfg(feature = "station")]
 pub use station::StationClient;
 pub use websocket::WebSocketClient;
 

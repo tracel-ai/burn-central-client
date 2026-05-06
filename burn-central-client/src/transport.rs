@@ -4,21 +4,22 @@ use reqwest::header::COOKIE;
 use crate::error::{ApiErrorBody, ApiErrorCode, ClientError};
 
 #[derive(Debug, Clone)]
-pub(super) enum Auth {
+pub enum Auth {
     None,
     SessionCookie(String),
     Bearer(String),
 }
 
 #[derive(Debug, Clone)]
-pub(super) struct ApiTransport {
+pub struct ApiTransport {
     http_client: reqwest::blocking::Client,
     base_url: Url,
     auth: Auth,
 }
 
+#[allow(unused)]
 impl ApiTransport {
-    pub(super) fn new(base_url: Url) -> Self {
+    pub fn new(base_url: Url) -> Self {
         Self {
             http_client: reqwest::blocking::Client::new(),
             base_url,
@@ -26,24 +27,24 @@ impl ApiTransport {
         }
     }
 
-    pub(super) fn with_auth(mut self, auth: Auth) -> Self {
+    pub fn with_auth(mut self, auth: Auth) -> Self {
         self.auth = auth;
         self
     }
 
-    pub(super) fn set_auth(&mut self, auth: Auth) {
+    pub fn set_auth(&mut self, auth: Auth) {
         self.auth = auth;
     }
 
-    pub(super) fn base_url(&self) -> &Url {
+    pub fn base_url(&self) -> &Url {
         &self.base_url
     }
 
-    pub(super) fn auth(&self) -> &Auth {
+    pub fn auth(&self) -> &Auth {
         &self.auth
     }
 
-    pub(super) fn request(
+    pub fn request(
         &self,
         method: reqwest::Method,
         path: impl AsRef<str>,
@@ -61,7 +62,7 @@ impl ApiTransport {
         }
     }
 
-    pub(super) fn get_json<R>(&self, path: impl AsRef<str>) -> Result<R, ClientError>
+    pub fn get_json<R>(&self, path: impl AsRef<str>) -> Result<R, ClientError>
     where
         R: for<'de> serde::Deserialize<'de>,
     {
@@ -70,15 +71,12 @@ impl ApiTransport {
         Ok(serde_json::from_slice::<R>(&bytes)?)
     }
 
-    pub(super) fn get(&self, path: impl AsRef<str>) -> Result<(), ClientError> {
+    pub fn get(&self, path: impl AsRef<str>) -> Result<(), ClientError> {
         self.req(reqwest::Method::GET, path, None::<serde_json::Value>)
             .map(|_| ())
     }
 
-    pub(super) fn get_optional_json<R>(
-        &self,
-        path: impl AsRef<str>,
-    ) -> Result<Option<R>, ClientError>
+    pub fn get_optional_json<R>(&self, path: impl AsRef<str>) -> Result<Option<R>, ClientError>
     where
         R: for<'de> serde::Deserialize<'de>,
     {
@@ -91,11 +89,7 @@ impl ApiTransport {
         Ok(Some(serde_json::from_slice::<R>(&bytes)?))
     }
 
-    pub(super) fn post_json<T, R>(
-        &self,
-        path: impl AsRef<str>,
-        body: Option<T>,
-    ) -> Result<R, ClientError>
+    pub fn post_json<T, R>(&self, path: impl AsRef<str>, body: Option<T>) -> Result<R, ClientError>
     where
         T: serde::Serialize,
         R: for<'de> serde::Deserialize<'de>,
@@ -105,18 +99,14 @@ impl ApiTransport {
         Ok(serde_json::from_slice::<R>(&bytes)?)
     }
 
-    pub(super) fn post<T>(&self, path: impl AsRef<str>, body: Option<T>) -> Result<(), ClientError>
+    pub fn post<T>(&self, path: impl AsRef<str>, body: Option<T>) -> Result<(), ClientError>
     where
         T: serde::Serialize,
     {
         self.req(reqwest::Method::POST, path, body).map(|_| ())
     }
 
-    pub(super) fn patch_json<T, R>(
-        &self,
-        path: impl AsRef<str>,
-        body: Option<T>,
-    ) -> Result<R, ClientError>
+    pub fn patch_json<T, R>(&self, path: impl AsRef<str>, body: Option<T>) -> Result<R, ClientError>
     where
         T: serde::Serialize,
         R: for<'de> serde::Deserialize<'de>,
@@ -126,12 +116,12 @@ impl ApiTransport {
         Ok(serde_json::from_slice::<R>(&bytes)?)
     }
 
-    pub(super) fn delete(&self, path: impl AsRef<str>) -> Result<(), ClientError> {
+    pub fn delete(&self, path: impl AsRef<str>) -> Result<(), ClientError> {
         self.req(reqwest::Method::DELETE, path, None::<serde_json::Value>)
             .map(|_| ())
     }
 
-    pub(super) fn delete_json<R>(&self, path: impl AsRef<str>) -> Result<R, ClientError>
+    pub fn delete_json<R>(&self, path: impl AsRef<str>) -> Result<R, ClientError>
     where
         R: for<'de> serde::Deserialize<'de>,
     {
@@ -140,7 +130,7 @@ impl ApiTransport {
         Ok(serde_json::from_slice::<R>(&bytes)?)
     }
 
-    pub(super) fn req<T: serde::Serialize>(
+    pub fn req<T: serde::Serialize>(
         &self,
         method: reqwest::Method,
         path: impl AsRef<str>,
@@ -163,7 +153,7 @@ impl ApiTransport {
         Ok(response)
     }
 
-    pub(super) fn join(&self, path: &str) -> Url {
+    pub fn join(&self, path: &str) -> Url {
         self.join_versioned(path, 1)
     }
 
@@ -173,28 +163,6 @@ impl ApiTransport {
             .unwrap()
             .join(path)
             .expect("Should be able to join url")
-    }
-
-    pub(super) fn upload_bytes_to_url(&self, url: &str, bytes: Vec<u8>) -> Result<(), ClientError> {
-        self.http_client
-            .put(url)
-            .body(bytes)
-            .send()?
-            .map_to_burn_central_err()?;
-
-        Ok(())
-    }
-
-    pub(super) fn download_bytes_from_url(&self, url: &str) -> Result<Vec<u8>, ClientError> {
-        let data = self
-            .http_client
-            .get(url)
-            .send()?
-            .map_to_burn_central_err()?
-            .bytes()?
-            .to_vec();
-
-        Ok(data)
     }
 }
 
