@@ -47,3 +47,9 @@ pub struct QueryDatasetVersionsRequest {
     pub page: Option<u32>,
     pub per_page: Option<u32>,
 }
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct StreamDatasetVersionItemsRequest {
+    pub cursor: Option<u64>,
+    pub limit: Option<u32>,
+}

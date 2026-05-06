@@ -48,3 +48,17 @@ pub struct DatasetDownloadFileResponse {
 pub struct DatasetDownloadResponse {
     pub files: Vec<DatasetDownloadFileResponse>,
 }
+
+#[serde_with::serde_as]
+#[derive(Debug, Clone, Deserialize)]
+pub struct DatasetVersionItemResponse {
+    pub entry_idx: u64,
+    #[serde_as(as = "serde_with::base64::Base64")]
+    pub payload: Vec<u8>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct DatasetVersionItemsPageResponse {
+    pub items: Vec<DatasetVersionItemResponse>,
+    pub next_cursor: Option<u64>,
+}
