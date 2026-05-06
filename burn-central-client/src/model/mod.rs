@@ -15,11 +15,9 @@ impl Client {
         project_name: &str,
         model_name: &str,
     ) -> Result<ModelResponse, ClientError> {
-        let url = self.join(&format!(
+        self.transport.get_json(format!(
             "projects/{namespace}/{project_name}/models/{model_name}"
-        ));
-
-        self.get_json::<ModelResponse>(url)
+        ))
     }
 
     /// Get details about a specific model version.
@@ -32,11 +30,9 @@ impl Client {
         model_name: &str,
         version: u32,
     ) -> Result<ModelVersionResponse, ClientError> {
-        let url = self.join(&format!(
+        self.transport.get_json(format!(
             "projects/{namespace}/{project_name}/models/{model_name}/versions/{version}"
-        ));
-
-        self.get_json::<ModelVersionResponse>(url)
+        ))
     }
 
     /// Generate presigned URLs for downloading model version files.
@@ -49,10 +45,8 @@ impl Client {
         model_name: &str,
         version: u32,
     ) -> Result<ModelDownloadResponse, ClientError> {
-        let url = self.join(&format!(
+        self.transport.get_json(format!(
             "projects/{namespace}/{project_name}/models/{model_name}/versions/{version}/download"
-        ));
-
-        self.get_json::<ModelDownloadResponse>(url)
+        ))
     }
 }

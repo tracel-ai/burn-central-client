@@ -4,18 +4,16 @@ use reqwest::header::SET_COOKIE;
 
 use crate::{
     BurnCentralCredentials, Client, ClientError,
-    client::ResponseExt,
+    transport::ResponseExt,
     user::response::{GetUserOrganizationsResponse, UserResponseSchema},
 };
 
 impl Client {
     /// Log in to the Burn Central server with the given credentials.
     pub fn login(&self, credentials: &BurnCentralCredentials) -> Result<String, ClientError> {
-        let url = self.join("login/api-key");
-
         let form = self
-            .http_client
-            .post(url)
+            .transport
+            .request(reqwest::Method::POST, "login/api-key")
             .form::<BurnCentralCredentials>(credentials);
 
         tracing::debug!("Requesting login form: {form:?}");
@@ -34,14 +32,13 @@ impl Client {
     }
 
     pub fn get_current_user(&self) -> Result<UserResponseSchema, ClientError> {
-        let url = self.join("user");
-
-        self.get_json::<UserResponseSchema>(url)
+        let url = self.transport.join("user");
+        self.transport.get_json(url)
     }
 
     pub fn get_user_organizations(&self) -> Result<GetUserOrganizationsResponse, ClientError> {
-        let url = self.join("user/organizations");
+        let url = self.transport.join("user/organizations");
 
-        self.get_json(url)
+        self.transport.get_json(url)
     }
 }
