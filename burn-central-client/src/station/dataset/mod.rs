@@ -4,11 +4,12 @@ pub mod response;
 pub use request::{
     CreateDatasetRequest, DatasetMetadataFilterRequest, DatasetMetadataJsonComparisonRequest,
     DatasetMetadataPathRequest, DatasetQueryFilterRequest, QueryDatasetVersionsRequest,
-    QueryDatasetsRequest,
+    QueryDatasetsRequest, StreamDatasetVersionItemsRequest,
 };
 pub use response::{
     DatasetDownloadFileResponse, DatasetDownloadResponse, DatasetListResponse, DatasetResponse,
-    DatasetVersionListResponse, DatasetVersionResponse, SourceKindResponse,
+    DatasetVersionItemResponse, DatasetVersionItemsPageResponse, DatasetVersionListResponse,
+    DatasetVersionResponse, SourceKindResponse,
 };
 
 use crate::{ClientError, transport::ApiTransport};
@@ -59,5 +60,27 @@ impl<'a> DatasetClient<'a> {
         self.transport.get_json(format!(
             "datasets/{dataset_name}/versions/{version}/download"
         ))
+    }
+
+    pub fn stream_items(
+        &self,
+        dataset_name: &str,
+        version: u32,
+        request: StreamDatasetVersionItemsRequest,
+    ) -> Result<DatasetVersionItemsPageResponse, ClientError> {
+        let mut url = self
+            .transport
+            .join(&format!("datasets/{dataset_name}/versions/{version}/items"));
+        {
+            let mut pairs = url.query_pairs_mut();
+            if let Some(cursor) = request.cursor {
+                pairs.append_pair("cursor", &cursor.to_string());
+            }
+            if let Some(limit) = request.limit {
+                pairs.append_pair("limit", &limit.to_string());
+            }
+        }
+
+        self.transport.get_json(url)
     }
 }
