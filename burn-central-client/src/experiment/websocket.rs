@@ -11,6 +11,7 @@ pub struct ActivityRequest {
     pub id: u64,
     pub parent: Option<u64>,
     pub name: String,
+    pub cancellable: bool,
     pub meter: Option<ActivityMeterRequest>,
     #[serde(default)]
     pub attributes: serde_json::Map<String, serde_json::Value>,
@@ -20,6 +21,7 @@ pub struct ActivityRequest {
 pub enum ActivityStatusRequest {
     Success,
     Abandoned,
+    Cancelled,
 }
 
 #[derive(Debug, Serialize)]
@@ -99,4 +101,5 @@ pub enum ExperimentMessage {
 #[serde(tag = "type", content = "data", rename_all = "snake_case")]
 pub enum ServerMessage {
     CancelRequested,
+    ActivityCancelRequested { id: u64 },
 }
