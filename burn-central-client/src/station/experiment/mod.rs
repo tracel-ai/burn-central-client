@@ -13,7 +13,7 @@ pub use response::{
     MetricEntryResponse, MetricGroupResponse, MetricMetadataResponse, MetricResponse,
     MetricSummaryGroupResponse, MetricSummaryResponse, MultipartUploadResponse,
     PresignedArtifactFileUploadUrlsResponse, PresignedArtifactFileUrlResponse,
-    PresignedUploadUrlResponse, TrainingFunctionResponse,
+    PresignedUploadUrlResponse,
 };
 
 use crate::{ClientError, WebSocketClient, transport::ApiTransport, websocket::WebSocketError};

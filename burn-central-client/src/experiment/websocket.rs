@@ -46,6 +46,10 @@ pub enum ExperimentMessage {
         value: serde_json::Value,
         name: String,
     },
+    Attribute {
+        key: String,
+        value: serde_json::Value,
+    },
     InputUsed(InputUsed),
     Error(String),
     ExperimentComplete(ExperimentCompletion),
