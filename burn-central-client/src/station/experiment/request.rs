@@ -1,9 +1,14 @@
+use std::collections::HashMap;
+
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateExperimentRequest {
+    pub name: Option<String>,
     pub description: Option<String>,
-    pub routine_run: String,
+    #[serde(default)]
+    pub attributes: HashMap<String, Value>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
