@@ -2,6 +2,10 @@ pub mod request;
 pub mod response;
 pub mod websocket;
 
+use std::collections::HashMap;
+
+use serde_json::Value;
+
 use crate::{
     Client, ClientError, WebSocketClient,
     experiment::{request::CreateExperimentSchema, response::ExperimentResponse},
@@ -31,9 +35,9 @@ impl Client {
         &self,
         owner_name: &str,
         project_name: &str,
+        name: Option<String>,
         description: Option<String>,
-        code_version_digest: String,
-        routine: String,
+        attributes: HashMap<String, Value>,
     ) -> Result<ExperimentResponse, ClientError> {
         let path: &str = &format!("projects/{owner_name}/{project_name}/experiments");
         let url = self.transport.join(path);
@@ -42,9 +46,9 @@ impl Client {
         let experiment_response = self.transport.post_json(
             url,
             Some(CreateExperimentSchema {
+                name,
                 description,
-                code_version_digest,
-                routine_run: routine,
+                attributes,
             }),
         )?;
 

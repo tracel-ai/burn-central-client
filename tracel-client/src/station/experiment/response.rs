@@ -7,13 +7,14 @@ use serde_json::Value;
 pub struct ExperimentResponse {
     pub id: i32,
     pub experiment_num: i32,
+    pub name: Option<String>,
     pub status: String,
     pub description: String,
     pub created_at: String,
-    pub training_function: Option<TrainingFunctionResponse>,
     pub arguments: Value,
     pub inputs: Vec<ExperimentInputResponse>,
     pub configurations: HashMap<String, Value>,
+    pub attributes: HashMap<String, Value>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -21,15 +22,6 @@ pub struct ExperimentResponse {
 pub enum ExperimentInputResponse {
     Artifact { artifact_id: String },
     Model { model_version_id: String },
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct TrainingFunctionResponse {
-    pub mod_path: String,
-    pub fn_name: String,
-    pub proc_type: String,
-    pub code: String,
-    pub routine: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
