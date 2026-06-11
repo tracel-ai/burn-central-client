@@ -1,4 +1,4 @@
-# Tracel  Client
+# Tracel Client
 
 ## Description
 
