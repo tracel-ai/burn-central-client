@@ -74,7 +74,7 @@ impl WebSocketClient {
 
         match socket.get_mut() {
             MaybeTlsStream::Plain(stream) => stream.set_nonblocking(true),
-            MaybeTlsStream::NativeTls(stream) => stream.get_mut().set_nonblocking(true),
+            MaybeTlsStream::Rustls(stream) => stream.sock.set_nonblocking(true),
             _ => unimplemented!("Other TLS streams are not supported"),
         }
         .map_err(|e| {
@@ -171,7 +171,7 @@ impl WebSocketClient {
         let socket = self.active_socket()?;
         match socket.get_mut() {
             MaybeTlsStream::Plain(stream) => stream.set_nonblocking(false),
-            MaybeTlsStream::NativeTls(stream) => stream.get_mut().set_nonblocking(false),
+            MaybeTlsStream::Rustls(stream) => stream.get_mut().set_nonblocking(false),
             _ => unimplemented!("Other TLS streams are not supported"),
         }
         .map_err(|e| {
